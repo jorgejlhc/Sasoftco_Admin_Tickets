@@ -49,13 +49,10 @@ public class Ticket {
         this.fechaVencimiento = fechaVencimiento;
     }
 
-    public void marcarComoResuelto(Optional<String> comentario) {
+    public void marcarComoResuelto(String comentario) {
         if (this.estado != EstadoTicket.RESUELTO) {
             this.estado = EstadoTicket.RESUELTO;
-
-            String valorComentario = comentario.map(String::trim).filter(c -> !c.isEmpty()).orElse("");
-            this.comentario = valorComentario;
-
+            this.comentario = comentario;
             this.fechaActualizacion = LocalDateTime.now();
         }
     }
