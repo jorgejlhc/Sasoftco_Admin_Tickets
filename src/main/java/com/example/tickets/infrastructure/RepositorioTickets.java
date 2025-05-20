@@ -5,11 +5,12 @@ import java.util.List;
 import java.util.Optional;
 
 public interface RepositorioTickets {
+
     Ticket guardar(Ticket ticket);
 
     Optional<Ticket> obtenerPorId(Long id);
 
     List<Ticket> obtenerTodos();
 
-    List<Ticket> obtenerNoResueltosMasAntiguosQueDias(int dias);
+    List<Ticket> obtenerNoResueltos(int dias);
 }

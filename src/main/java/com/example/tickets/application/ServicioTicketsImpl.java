@@ -3,9 +3,8 @@ package com.example.tickets.application;
 import com.example.tickets.domain.*;
 import com.example.tickets.infrastructure.RepositorioTickets;
 import org.springframework.stereotype.Service;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ServicioTicketsImpl implements ServicioTickets {
@@ -33,14 +32,16 @@ public class ServicioTicketsImpl implements ServicioTickets {
     }
 
     @Override
-    public Ticket actualizarEstadoTicket(Long id, EstadoTicket estado) {
+    public Ticket actualizarEstadoTicket(Long id, EstadoTicketUpd estado, String comentario) {
+        EstadoTicket estadoTicket = EstadoTicket.valueOf(estado.name());
         Ticket ticket = obtenerTicketPorId(id);
-        ticket.setEstado(estado);
+        ticket.setEstado(estadoTicket);
+        ticket.setComentario(comentario);
         return repositorioTickets.guardar(ticket);
     }
 
     @Override
-    public Ticket marcarComoResuelto(Long id, String comentario) {
+    public Ticket marcarComoResuelto(Long id, Optional<String> comentario) {
         Ticket ticket = obtenerTicketPorId(id);
         ticket.marcarComoResuelto(comentario);
         return repositorioTickets.guardar(ticket);
@@ -48,6 +49,6 @@ public class ServicioTicketsImpl implements ServicioTickets {
 
     @Override
     public List<Ticket> obtenerTicketsNoResueltosMayoresA30Dias() {
-        return repositorioTickets.obtenerNoResueltosMasAntiguosQueDias(30);
+        return repositorioTickets.obtenerNoResueltos(30);
     }
 }

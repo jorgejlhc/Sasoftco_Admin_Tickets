@@ -14,7 +14,7 @@ public interface RepositorioTicketsJPA extends JpaRepository<Ticket, Long> {
     List<Ticket> findUnresolvedOlderThan(@Param("estadoResuelto") EstadoTicket estadoResuelto,
             @Param("fechaCorte") LocalDateTime fechaCorte);
 
-    default List<Ticket> obtenerNoResueltosMasAntiguosQueDias(int dias) {
+    default List<Ticket> obtenerNoResueltos(int dias) {
         LocalDateTime fechaCorte = LocalDateTime.now().minus(dias, ChronoUnit.DAYS);
         return findUnresolvedOlderThan(EstadoTicket.RESUELTO, fechaCorte);
     }

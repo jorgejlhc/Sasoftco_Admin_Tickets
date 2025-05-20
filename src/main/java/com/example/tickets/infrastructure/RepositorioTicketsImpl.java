@@ -30,7 +30,7 @@ public class RepositorioTicketsImpl implements RepositorioTickets {
     }
 
     @Override
-    public List<Ticket> obtenerNoResueltosMasAntiguosQueDias(int dias) {
-        return repositorioTicketsJPA.obtenerNoResueltosMasAntiguosQueDias(dias);
+    public List<Ticket> obtenerNoResueltos(int dias) {
+        return repositorioTicketsJPA.obtenerNoResueltos(dias);
     }
 }
