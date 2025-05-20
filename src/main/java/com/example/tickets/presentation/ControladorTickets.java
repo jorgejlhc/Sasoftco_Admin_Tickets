@@ -3,18 +3,19 @@ package com.example.tickets.presentation;
 import com.example.tickets.application.ServicioTickets;
 import com.example.tickets.domain.Ticket;
 import com.example.tickets.domain.EstadoTicketUpd;
-
+import com.example.tickets.domain.exceptions.TicketNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/tickets")
@@ -28,11 +29,12 @@ public class ControladorTickets {
     }
 
     @Operation(summary = "Crear un nuevo ticket", description = "Registra un nuevo ticket en el sistema")
-    @ApiResponse(responseCode = "200", description = "Ticket creado exitosamente", content = @Content(schema = @Schema(implementation = Ticket.class)))
+    @ApiResponse(responseCode = "201", description = "Ticket creado exitosamente", content = @Content(schema = @Schema(implementation = Ticket.class)))
     @PostMapping
     public ResponseEntity<Ticket> crearTicket(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Datos del ticket a crear", required = true, content = @Content(schema = @Schema(implementation = Ticket.class))) @RequestBody Ticket ticket) {
-        return ResponseEntity.ok(servicioTickets.crearTicket(ticket));
+        ticket.setId(null);
+        return ResponseEntity.status(HttpStatus.CREATED).body(servicioTickets.crearTicket(ticket));
     }
 
     @Operation(summary = "Obtener todos los tickets", description = "Retorna una lista completa de todos los tickets existentes")
@@ -48,7 +50,11 @@ public class ControladorTickets {
     @GetMapping("/{id}")
     public ResponseEntity<Ticket> obtenerTicketPorId(
             @Parameter(description = "ID único del ticket", required = true, example = "1") @PathVariable Long id) {
-        return ResponseEntity.ok(servicioTickets.obtenerTicketPorId(id));
+        try {
+            return ResponseEntity.ok(servicioTickets.obtenerTicketPorId(id));
+        } catch (TicketNotFoundException ex) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
+        }
     }
 
     @Operation(summary = "Actualizar estado de un ticket", description = "Modifica el estado de un ticket existente")
@@ -59,20 +65,27 @@ public class ControladorTickets {
     public ResponseEntity<Ticket> actualizarEstadoTicket(
             @Parameter(description = "ID del ticket a actualizar", required = true, example = "1") @PathVariable Long id,
             @Parameter(description = "Nuevo estado del ticket", required = true) @RequestParam EstadoTicketUpd estado,
-            @Parameter(description = "Comentario de resolución", required = true) @RequestParam String comentario) {
-        return ResponseEntity.ok(servicioTickets.actualizarEstadoTicket(id, estado, comentario));
+            @Parameter(description = "Comentario opcional", required = true) @RequestParam(required = true) String comentario) {
+        try {
+            return ResponseEntity.ok(servicioTickets.actualizarEstadoTicket(id, estado, comentario));
+        } catch (TicketNotFoundException ex) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
+        }
     }
 
-    @Operation(summary = "Marcar ticket como resuelto", description = "Cambia el estado de un ticket a RESUELTO y agrega un comentario")
+    @Operation(summary = "Marcar ticket como resuelto", description = "Cambia el estado de un ticket a RESUELTO")
     @ApiResponse(responseCode = "200", description = "Ticket marcado como resuelto", content = @Content(schema = @Schema(implementation = Ticket.class)))
     @ApiResponse(responseCode = "400", description = "Solicitud inválida")
     @ApiResponse(responseCode = "404", description = "Ticket no encontrado")
-    @ApiResponse(responseCode = "500", description = "No fue posible realizar el proceso solicitado")
     @PatchMapping("/{id}/resolver")
     public ResponseEntity<Ticket> marcarComoResuelto(
             @Parameter(description = "ID del ticket a resolver", required = true, example = "1") @PathVariable Long id,
-            @Parameter(description = "Comentario de resolución", required = false) @RequestParam Optional<String> comentario) {
-        return ResponseEntity.ok(servicioTickets.marcarComoResuelto(id, comentario));
+            @Parameter(description = "Comentario de resolución", required = false) @RequestParam(required = false) String comentario) {
+        try {
+            return ResponseEntity.ok(servicioTickets.marcarComoResuelto(id, comentario));
+        } catch (TicketNotFoundException ex) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
+        }
     }
 
     @Operation(summary = "Obtener tickets no resueltos antiguos", description = "Retorna tickets no resueltos con más de 30 días de creación")
